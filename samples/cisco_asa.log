@@ -1,0 +1,20 @@
+Oct 10 2018 12:34:56 localhost CiscoASA[999]: %ASA-6-305011: Built dynamic TCP translation from inside:172.31.98.44/1772 to outside:192.168.98.44/8256
+<134>Nov 28 2007 17:20:48: %ASA-6-302013: Built outbound TCP connection 76118 for outside:207.68.178.45/80 (207.68.178.45/80) to inside:192.168.20.31/3530 (99.129.50.157/5967)
+<134>Nov 28 2007 17:21:02: %ASA-6-302014: Teardown TCP connection 76118 for outside:207.68.178.45/80 to inside:192.168.20.31/3530 duration 0:00:14 bytes 12480 TCP FINs
+<166>%ASA-6-110002: Failed to locate egress interface for protocol tcp from inside:10.1.1.5/52341 to outside:8.8.8.8/443
+%ASA-4-106023: Deny tcp src inside:192.168.1.10/51234 dst outside:203.0.113.5/23 by access-group inside_access_in
+%ASA-6-106100: access-list inside_access_in permitted tcp inside/192.168.1.20(52411) -> outside/93.184.216.34(80) hit-cnt 1 first hit
+%ASA-5-111008: User 'enable_15' executed the 'logging buffer-size 4096' command
+%ASA-6-302015: Built inbound UDP connection 88212 for outside:8.8.8.8/53 (8.8.8.8/53) to inside:192.168.1.50/53312 (192.168.1.50/53312)
+%ASA-6-302016: Teardown UDP connection 88212 for outside:8.8.8.8/53 to inside:192.168.1.50/53312 duration 0:00:02 bytes 156
+%ASA-4-313004: Denied ICMP type=8, code=0 from 192.168.20.31 on interface inside
+%ASA-3-305006: portmap translation creation failed for tcp src inside:10.0.0.8/40001 dst outside:1.1.1.1/80
+%ASA-6-725001: Starting SSL handshake with client outside:203.0.113.9/4443 for TLSv1.2 session
+%ASA-6-725002: Device completed SSL handshake with client outside:203.0.113.9/4443
+%ASA-6-602101: PMTU packet on outside, changing MTU from 1500 to 1492 for IP 198.51.100.23
+%ASA-5-750002: Local expired license, feature: AnyConnect Premium, expiry: 2025-01-01
+%ASA-6-302021: Teardown ICMP connection 112 for outside:8.8.8.8/0 to inside:192.168.1.11/512 duration 0:00:00 bytes 84
+%ASA-4-402119: IPSEC: Received an ESP packet with invalid SPI from 198.51.100.7 to 203.0.113.1
+%ASA-6-305012: Teardown dynamic TCP translation from inside:172.31.98.44/1772 to outside:192.168.98.44/8256 duration 0:01:12
+%ASA-6-106015: Deny TCP (no connection) from 10.1.1.9/443 to 192.168.1.5/52111 flags ACK on interface inside
+%ASA-6-302018: Built outbound TCP connection 99102 for outside:142.250.72.14/443 (142.250.72.14/443) to inside:192.168.1.100/61234 (10.0.0.5/61234)
