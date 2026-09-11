@@ -26,7 +26,8 @@ func TestCiscoParseSamples(t *testing.T) {
 	// 	t.Fatalf("read samples: %v", err)
 	// }
 	// lines := strings.Split(strings.TrimSpace(string(raw)), "\n")
-	lines := utils.GenerateCiscoASA(100, 0)
+	lines := utils.GenerateCiscoASA(1000, 0)
+	count := 0
 	// if len(lines) != 20 {
 	// 	t.Fatalf("want 20 sample lines, got %d", len(lines))
 	// }
@@ -50,9 +51,11 @@ func TestCiscoParseSamples(t *testing.T) {
 			e.SrcEndpoint.IP, e.SrcEndpoint.Port,
 			e.DstEndpoint.IP, e.DstEndpoint.Port,
 			e.ProtocolName, e.Action, ln, string(b))
+		count++
 		// TODO(you): strengthen per-ID asserts, e.g. line 2 (302013):
 		// want src 192.168.20.31/3530, dst 207.68.178.45/80, proto tcp, Allow.
 	}
+	t.Logf("Processed %d log entries", count)
 }
 
 func TestCiscoRegistry(t *testing.T) {
