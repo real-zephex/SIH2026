@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"sih/src/schema"
+	"sih/utils"
 )
 
 func TestFortiGateGolden20(t *testing.T) {
@@ -308,4 +309,53 @@ func TestTokenizeFortiGateQuotedValues(t *testing.T) {
 			kv["app"],
 		)
 	}
+}
+
+func TestFortiGateSynthetic(t *testing.T) {
+	lines := utils.GenerateFortiGate(2000, 42)
+
+	// if len(lines) != 200 {
+	// 	t.Fatalf(
+	// 		"generated %d lines, want 200",
+	// 		len(lines),
+	// 	)
+	// }
+	count := 0
+	for i, line := range lines {
+		if !Detect(line) {
+			t.Fatalf(
+				"synthetic line %d: Detect returned false\nraw: %s",
+				i+1,
+				line,
+			)
+		}
+
+		event, err := Parse(line)
+		if err != nil {
+			t.Fatalf(
+				"synthetic line %d: Parse failed: %v\nraw: %s",
+				i+1,
+				err,
+				line,
+			)
+		}
+
+		if err := event.Validate(); err != nil {
+			t.Fatalf(
+				"synthetic line %d: Validate failed: %v\nraw: %s",
+				i+1,
+				err,
+				line,
+			)
+		}
+
+		if event.RawData != line {
+			t.Fatalf(
+				"synthetic line %d: raw_data was not preserved",
+				i+1,
+			)
+		}
+		count++
+	}
+	t.Logf("Processed %d log lines", count)
 }
