@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"sih/src/schema"
+	"sih/utils"
 )
 
 func TestSuricataDetect(t *testing.T) {
@@ -169,4 +170,68 @@ func TestSuricataRegistry(t *testing.T) {
 	if err := e.Validate(); err != nil {
 		t.Fatalf("registry validate: %v", err)
 	}
+}
+
+func TestSuricataSynthetic(t *testing.T) {
+	lines := utils.GenerateSuricata(100000, 42)
+
+	// if len(lines) != 200 {
+	// 	t.Fatalf(
+	// 		"generated %d lines, want 200",
+	// 		len(lines),
+	// 	)
+	// }
+
+	count := 0
+	seen := map[int]int{}
+
+	for i, line := range lines {
+		if !(Suricata{}).Detect(line) {
+			t.Fatalf(
+				"synthetic line %d: Detect returned false\nraw: %.160s",
+				i+1,
+				line,
+			)
+		}
+
+		event, err := (Suricata{}).Parse(line)
+		if err != nil {
+			t.Fatalf(
+				"synthetic line %d: Parse failed: %v\nraw: %.160s",
+				i+1,
+				err,
+				line,
+			)
+		}
+
+		if err := event.Validate(); err != nil {
+			t.Fatalf(
+				"synthetic line %d: Validate failed: %v\nraw: %.160s",
+				i+1,
+				err,
+				line,
+			)
+		}
+
+		if event.RawData != line {
+			t.Fatalf(
+				"synthetic line %d: raw_data was not preserved",
+				i+1,
+			)
+		}
+
+		seen[event.ClassUID]++
+		count++
+	}
+
+	// Generator must cover both classes: 2004 findings and 4001 traffic.
+	if seen[schema.ClassDetectionFinding] == 0 {
+		t.Fatal("synthetic set has no 2004 DetectionFinding events")
+	}
+
+	if seen[schema.ClassNetworkActivity] == 0 {
+		t.Fatal("synthetic set has no 4001 NetworkActivity events")
+	}
+
+	t.Logf("Processed %d log entries", count)
 }
