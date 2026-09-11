@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"sih/src/schema"
+	"sih/utils"
 )
 
 // TestDetectLinux checks that Linux firewall and SSH logs
@@ -405,6 +406,76 @@ func TestParseLinuxValidation(t *testing.T) {
 				"event.Validate() failed for %q: %v",
 				line,
 				err,
+			)
+		}
+	}
+}
+
+// TestParseLinuxSynthetic round-trips the utils.GenerateLinux bulk generator:
+// every synthetic line must Detect, Parse, Validate, and preserve raw_data.
+func TestParseLinuxSynthetic(t *testing.T) {
+	lines := utils.GenerateLinux(10000, 42)
+
+	// if len(lines) != 200 {
+	// 	t.Fatalf(
+	// 		"generated %d lines, want 200",
+	// 		len(lines),
+	// 	)
+	// }
+
+	count := 0
+
+	seen := map[string]int{}
+
+	for i, line := range lines {
+		if !DetectLinux(line) {
+			t.Fatalf(
+				"synthetic line %d: DetectLinux returned false\nraw: %.160s",
+				i+1,
+				line,
+			)
+		}
+
+		event, err := ParseLinux(line)
+
+		if err != nil {
+			t.Fatalf(
+				"synthetic line %d: ParseLinux failed: %v\nraw: %.160s",
+				i+1,
+				err,
+				line,
+			)
+		}
+
+		if err := event.Validate(); err != nil {
+			t.Fatalf(
+				"synthetic line %d: Validate failed: %v\nraw: %.160s",
+				i+1,
+				err,
+				line,
+			)
+		}
+
+		if event.RawData != line {
+			t.Fatalf(
+				"synthetic line %d: raw_data was not preserved",
+				i+1,
+			)
+		}
+
+		seen[event.Action]++
+		count++
+	}
+
+	t.Logf("Processed %d log lines", count)
+
+	// Generator must cover the parser's action space, not just one shape.
+	for _, want := range []string{"BLOCK", "ALLOW", "DROP", "FAIL", "ACCEPT", "NEW"} {
+		if seen[want] == 0 {
+			t.Fatalf(
+				"synthetic set has no %s events (got %v)",
+				want,
+				seen,
 			)
 		}
 	}
