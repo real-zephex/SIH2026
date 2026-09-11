@@ -1,7 +1,7 @@
 // Package parser defines the plug-and-play parser contract (REQS.md).
 //
 // Every source implements: Detect (cheap sniff) + Parse (line -> schema.Event).
-// New source = new file + Register() call. See cisco_asa.go for the reference.
+// New source = new file + Register() call. See suricata.go for the reference.
 package parser
 
 import "sih/src/schema"
