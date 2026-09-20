@@ -1,1 +1,6 @@
 .env*
+ulpf*
+ulpf.db
+ulpf.db-shm
+ulpf.db-wal
+ulpf.db*
