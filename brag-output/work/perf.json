@@ -1,0 +1,10 @@
+{
+  "corpus_lines": 98,
+  "cpu": "",
+  "elapsed_seconds": 1.289851063,
+  "events_parsed": 176000,
+  "go_version": "go1.27.1",
+  "measured_eps": 136449.8623512783,
+  "note": "single-goroutine Detect+Parse+Validate over the real sample corpus, this machine",
+  "reps": 2000
+}
