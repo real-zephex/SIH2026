@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"crypto/rand"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -194,7 +193,7 @@ func ParseSuricata(line string) (schema.Event, error) {
 	}
 	ev.Unmapped = um
 
-	if err := ev.Validate(); err != nil {
+	if err := ev.ValidateNoRehash(); err != nil {
 		return schema.Event{}, fmt.Errorf("suricata: %w", err)
 	}
 	return ev, nil
@@ -254,13 +253,7 @@ func suricataTime(ts string) int64 {
 }
 
 // suricataUID generates a UUID v4-style trace ID.
-// Named uniquely to avoid colliding with sibling parsers' helpers on merge.
-func suricataUID() string {
-	var b [16]byte
-	if _, err := rand.Read(b[:]); err != nil {
-		return fmt.Sprintf("%d", time.Now().UTC().UnixNano())
-	}
-	b[6] = (b[6] & 0x0f) | 0x40
-	b[8] = (b[8] & 0x3f) | 0x80
-	return fmt.Sprintf("%08x-%04x-%04x-%04x-%012x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:16])
-}
+// Delegates to the canonical newUID helper in parser.go; this previously held a
+// second copy of the crypto/rand + Sprintf implementation, which meant a
+// getrandom syscall per Suricata event.
+func suricataUID() string { return newUID() }

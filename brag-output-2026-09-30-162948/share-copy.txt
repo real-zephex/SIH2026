@@ -1,0 +1,70 @@
+ULPF — Universal Log Pre-processing Framework
+Smart India Hackathon 2026 · Problem Statement #25165 · CACHE ME OUTSIDE
+
+Four perimeter devices emit four mutually incompatible log formats. ULPF ingests
+Cisco ASA syslog, FortiGate CEF, Suricata EVE JSON and Linux netfilter, and
+normalizes all of them to one lossless OCSF-Slim v1.8 schema — classes 4001
+NetworkActivity and 2004 DetectionFinding — then stores them in SQLite (WAL,
+single writer) and serves them over REST + SSE.
+
+Every event keeps the original line byte-for-byte plus its sha256, so
+losslessness is something you recompute rather than something we ask you to
+trust.
+
+WHAT THIS VIDEO SHOWS
+00:00  the problem: a new device means a new parser, and until then, a blind spot
+00:32  the architecture, and the one honest note about which branch it lives on
+01:20  the OCSF schema, and one real log line traced end to end
+02:20  backpressure instead of silent drops; the single writer; two ways to consume
+03:00  the optimization work — a 75x fix on our slowest parser, and why it mattered
+03:23  the two ceilings: 537,900 events/s ingest vs 16,700 rows/s end to end
+03:36  the 2.8% of events we were silently losing, and why that is a P0
+03:47  verification, measured outcomes, and the roadmap as we'd actually do it
+
+THE HONEST NUMBERS
+Ingest ceiling (parser pool, 12 workers)   537,900 events/s
+End to end, incl. the SQLite writer        16,700 rows/s
+Store alone, isolated                       35,740 rows/s
+Slowest parser (linux.go)   38,485 -> 511 ns/line      75x
+Bytes allocated per event   5,682 -> 441               12.9x less
+Allocations per event       56.4 -> 4.01               14x fewer
+End-to-end gain from a 5.1x parser speedup             +9.5%
+Silent event loss found by our own measurement         2.8%
+
+A 5.1x parser speedup bought 9.5% end to end. The optimizations were correct
+and worth keeping - they cut garbage 12.9x, which is where even that 9.5% came
+from - but they do not move the product metric, because the product is not
+parser-bound. The single SQLite writer is. That is the decision on the roadmap,
+and it is a 10-100x unlock that has nothing to do with parsing.
+
+STATE OF THE REPO, STATED PLAINLY
+main                parsers + schema, merged and tested. go vet clean,
+                    go test ./... passes.
+feature/phase2-pipeline
+                    pipeline, SQLite store, REST/SSE API, Dockerfile. Built,
+                    NOT yet merged. Everything from 00:32 onward is that branch.
+
+Our own PERF_REPORT.md section 7 already lists this README/reality mismatch as a
+P0 defect. It is called out on camera at 01:10 rather than glossed over.
+
+WHAT IS NEXT
+P0  Fix the Linux event_id collision (use HashRaw(raw) as the UID, as Cisco and
+    Suricata already do) and add a duplicates counter so this class of loss can
+    never be silent again
+P0  Fix the README to match main
+P0  Decide the storage story: accept ~16.7k rows/s as the design point, or
+    shard across N writers on N SQLite files - WAL allows one writer per file,
+    so this scales near-linearly
+P1  BatchSize 500 -> 2,000; apply the linux.go treatment to cisco_asa.go (now the
+    slowest at 16,908 ns/line); pre-size the FortiGate output map
+P2  Cheaper Suricata.Detect (524 ns/line, runs on every line); drop the committed
+    17 MB backend binary
+
+CREDITS
+Go 1.27 | SQLite via modernc.org/sqlite (CGO_ENABLED=0, air-gap deployable) |
+net/http for REST + SSE | OCSF-Slim v1.8
+All figures measured on an AMD Ryzen 5 7430U (6C/12T), Go 1.27, from
+PERF_REPORT.md. Every log line, hash and OCSF field shown in the video is real
+parser output from samples/, not mock data.
+
+Four formats in. One schema out. Nothing lost - and here's the hash to prove it.

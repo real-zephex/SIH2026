@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family:'JBM'; src:local('JetBrains Mono'); }
+  @font-face { font-family:'LSans'; src:local('Liberation Sans'); }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:1920px; height:1080px; overflow:hidden; background:#07090d; }
+  :root {
+    --bg:#07090d; --green:#3ddc84; --blue:#4d9fff; --red:#ff5c5c;
+    --amber:#f5a524; --violet:#a78bfa; --orange:#ff6b4a;
+    --ink:#e8eef7; --dim:#8494a8; --dimmer:#4d5a6b;
+    --mono:'JetBrains Mono','DejaVu Sans Mono',monospace;
+    --sans:'Liberation Sans','Adwaita Sans',sans-serif;
+  }
+  #stage { position:absolute; inset:0; }
+  .layer { position:absolute; inset:0; }
+
+  #grid { position:absolute; inset:0; opacity:.55;
+    background-image:
+      linear-gradient(rgba(77,159,255,.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(77,159,255,.05) 1px, transparent 1px);
+    background-size:64px 64px; }
+  #vig { position:absolute; inset:0;
+    background:radial-gradient(122% 92% at 50% 46%, transparent 42%, rgba(0,0,0,.74) 100%); }
+  .scanbar { position:absolute; left:0; right:0; height:240px;
+    background:linear-gradient(180deg,transparent,rgba(61,220,132,.09) 55%,rgba(61,220,132,.20) 78%,transparent);
+    filter:blur(1px); }
+
+  .chip { display:inline-flex; align-items:center; gap:9px;
+     font:600 18px/1 var(--mono); letter-spacing:.15em; text-transform:uppercase; }
+  .dot { width:9px; height:9px; border-radius:50%; box-shadow:0 0 12px currentColor; }
+
+  .raw { font:400 19px/1.6 var(--mono); color:#c3cfdd; white-space:pre-wrap; word-break:break-word; }
+  .raw .k { color:var(--blue); }
+  .raw .id { color:var(--amber); font-weight:600; }
+  .raw .ip { color:var(--green); }
+  .raw .num { color:#f0a868; }
+  .raw .q { color:#5d6b80; }
+  .raw .js { color:#6fd39b; }
+  .rawcard { background:linear-gradient(180deg,#0d1219,#0a0e14);
+     border:1px solid #1b2432; border-left:3px solid var(--c,#333);
+     border-radius:9px; padding:14px 20px; }
+
+  .ocsf { background:linear-gradient(180deg,#0b1017,#080c11);
+     border:1px solid #1d2836; border-radius:12px; padding:24px 28px;
+     box-shadow:0 30px 90px rgba(0,0,0,.62); }
+  .frow { display:flex; gap:12px; align-items:baseline; border-radius:5px; padding:1px 7px; margin-left:-7px; }
+
+  .h2 { font:700 56px/1.1 var(--sans); letter-spacing:-.018em; color:var(--ink); }
+  .kicker { font:600 19px/1 var(--mono); letter-spacing:.34em; text-transform:uppercase; color:var(--dim); }
+  .wordmark { font:800 128px/1 var(--sans); letter-spacing:-.04em; color:#fff; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="grid"></div>
+  <div id="vig"></div>
+  <div id="layers"></div>
+</div>
+<script>
+const DATA = __DATA__;
+const H = Object.fromEntries(DATA.heroes.map(h => [h.vendor, h]));
+const VC = { cisco_asa:'#4d9fff', fortigate:'#ff6b4a', suricata:'#a78bfa', linux:'#f5a524' };
+const VN = { cisco_asa:'Cisco ASA', fortigate:'FortiGate', suricata:'Suricata', linux:'Linux' };
+const VF = { cisco_asa:'SYSLOG', fortigate:'KEY=VALUE', suricata:'EVE JSON', linux:'NETFILTER / UFW' };
+const ORDER = ['suricata','cisco_asa','fortigate','linux'];
+
+const clamp01 = x => x<0?0:x>1?1:x;
+const seg = (t,a,b) => clamp01((t-a)/(b-a));
+const eo  = x => 1-Math.pow(1-x,3);
+const eio = x => x<.5 ? 4*x*x*x : 1-Math.pow(-2*x+2,3)/2;
+const px  = n => Math.round(n*1000)/1000;
+const trunc = (s,n) => s.length>n ? s.slice(0,n)+'…' : s;
+
+/* syntax highlighters for the REAL sample lines */
+const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function hlCisco(s){ return esc(s)
+  .replace(/(%ASA-\d-\d+)/g,'<span class="id">$1</span>')
+  .replace(/\b(\d{1,3}(?:\.\d{1,3}){3})\b/g,'<span class="ip">$1</span>')
+  .replace(/\b(\d+)\b/g,'<span class="num">$1</span>'); }
+function hlKV(s){ return esc(s)
+  .replace(/\b([a-z_]+)=/g,'<span class="k">$1</span>=')
+  .replace(/&quot;([^&]*)&quot;/g,'<span class="q">&quot;$1&quot;</span>')
+  .replace(/\b(\d{1,3}(?:\.\d{1,3}){3})\b/g,'<span class="ip">$1</span>')
+  .replace(/\b(\d+)\b/g,'<span class="num">$1</span>'); }
+function hlJSON(s){ return esc(s)
+  .replace(/&quot;([^&]*?)&quot;(\s*:)/g,'<span class="k">&quot;$1&quot;</span>$2')
+  .replace(/:\s*&quot;([^&]*?)&quot;/g,': <span class="js">&quot;$1&quot;</span>')
+  .replace(/:\s*(\d+)/g,': <span class="num">$1</span>')
+  .replace(/\b(\d{1,3}(?:\.\d{1,3}){3})\b/g,'<span class="ip">$1</span>'); }
+const HL = { cisco_asa:hlCisco, fortigate:hlKV, suricata:hlJSON, linux:hlKV };
+
+/* one vendor row: tag + format + the real line, clipped for layout */
+function vendorRow(v, x, y, w, fs, op, extra){
+  return `<div style="position:absolute;left:${x}px;top:${y}px;width:${w}px;opacity:${px(op)}">
+    <div style="display:flex;align-items:center;gap:15px;margin-bottom:10px">
+      <span class="chip" style="color:${VC[v]};font-size:${px(fs*0.82)}px">
+        <span class="dot" style="background:${VC[v]}"></span>${VN[v]}</span>
+      <span style="font:400 13px/1 var(--mono);color:var(--dimmer);letter-spacing:.12em">${VF[v]}</span>
+    </div>
+    <div class="rawcard" style="--c:${VC[v]};padding:${px(fs*0.7)}px ${px(fs*1.05)}px">
+      <div class="raw" style="font-size:${px(fs)}px">${HL[v](trunc(H[v].raw, extra||150))}</div>
+    </div></div>`;
+}
+
+/* ---------- S1  hook: four incompatible languages ---------- */
+function s1(t){
+  const rows = ORDER.map((v,i)=>{
+    const a = 0.15 + i*0.18;
+    const p = eo(seg(t,a,a+0.46));
+    if (p<=0) return '';
+    const y = 250 + i*150;
+    const j = (1-p)*40*(i%2?1:-1);
+    const txt = H[v].raw.slice(0, Math.floor(seg(t,a+0.04,a+0.40)*152));
+    return `<div class="layer" style="opacity:${px(clamp01(p*1.6))};transform:translate(${px((1-p)*110)}px,${px(j)}px)">
+      ${vendorRow(v,118,y,1684,19,1).replace(
+        HL[v](trunc(H[v].raw,150)),
+        HL[v](txt)+(p>.985?'<span style="color:var(--green);opacity:.5">▍</span>':'')
+      )}</div>`;
+  }).join('');
+
+  // caption: 4 words, fully settled at 1.85s, held to the 3.2s cut (~1.35s)
+  const cp = eo(seg(t,1.45,1.85));
+  const cap = cp>0 ? `<div class="layer" style="opacity:${px(cp)};transform:translateY(${px((1-cp)*16)}px)">
+    <div style="position:absolute;left:0;right:0;top:906px;text-align:center">
+      <div style="font:700 54px/1.1 var(--sans);letter-spacing:-.02em;color:var(--ink)">
+        Four devices. <span style="color:var(--amber)">Four languages.</span></div></div></div>` : '';
+
+  const sp = seg(t,0,2.4);
+  const scan = sp<1 ? `<div style="position:absolute;inset:0;overflow:hidden">
+    <div class="scanbar" style="top:${px(-240+sp*1320)}px"></div></div>` : '';
+  return rows + cap + scan;
+}
+
+/* ---------- S2  the problem: the clutter, and what it costs ---------- */
+function s2(t){
+  // The four lines compress into a tight, unreadable column and STAY — the
+  // clutter is the argument, so it must not fade out.
+  const f = eio(seg(t,3.2,3.95));
+  const y0 = i => 250 + i*150, y1 = i => 300 + i*104;
+  const x1 = 118, w1 = 660;
+  let clutter = '';
+  ORDER.forEach((v,i)=>{
+    const y = y0(i) + (y1(i)-y0(i))*f;
+    const w = 1684 + (w1-1684)*f;
+    clutter += `<div style="position:absolute;left:${x1}px;top:${px(y)}px;width:${px(w)}px;
+      opacity:${px(0.44+0.08*f)};transform:scale(${px(1-0.055*f)});transform-origin:left top">
+      ${vendorRow(v,x1,0,w1,15,1,74)}</div>`;
+  });
+
+  const stats = [
+    ['4','formats', 'var(--ink)'],
+    ['4','hand-written parsers','var(--ink)'],
+    ['4','weeks per new device','var(--red)'],
+  ].map(([n,l,col],i)=>{
+    const q = eo(seg(t,3.78+i*0.20,4.28+i*0.20));
+    if (q<=0) return '';
+    return `<div style="display:flex;align-items:baseline;gap:24px;opacity:${px(q)};
+      transform:translateX(${px((1-q)*30)}px)">
+      <div style="font:700 96px/1 var(--mono);color:${col};letter-spacing:-.035em;min-width:150px">${n}</div>
+      <div style="font:500 33px/1.2 var(--sans);color:var(--dim)">${l}</div></div>`;
+  }).join('');
+
+  const cp = eo(seg(t,4.55,4.95));
+  const cap = cp>0 ? `<div style="font:400 27px/1.45 var(--sans);color:var(--dimmer);opacity:${px(cp)}">
+    And every new model starts the cycle again.</div>` : '';
+
+  return clutter + `<div class="layer" style="opacity:${px(eo(seg(t,3.35,3.8)))}">
+    <div style="position:absolute;left:960px;top:322px;display:flex;flex-direction:column;gap:34px">${stats}</div>
+    <div style="position:absolute;left:960px;top:700px;width:820px">${cap}</div></div>`;
+}
+
+/* ---------- S3  reveal: four in, one schema ---------- */
+function s3(t){
+  const wmP = eo(seg(t,6.15,6.75));
+  const wm = wmP>0 ? `<div class="layer" style="opacity:${px(wmP)}">
+    <div style="position:absolute;left:0;right:0;top:126px;text-align:center">
+      <div class="wordmark" style="font-size:106px;transform:translateY(${px((1-wmP)*14)}px)">ULPF</div>
+      <div style="font:500 27px/1.4 var(--sans);color:var(--dim);margin-top:16px">
+        Universal Log Pre-processing Framework</div></div></div>` : '';
+
+  // four compact vendor rows, animating in from their hook positions
+  const rows = ORDER.map((v,i)=>{
+    const q = eo(seg(t,5.95+i*0.09,6.55+i*0.09));
+    if (q<=0) return '';
+    const y = 430 + i*92, w = 560;
+    return `<div class="layer" style="opacity:${px(clamp01(q*1.8))};transform:translate(${px((1-q)*-70)}px,0)">
+      ${vendorRow(v,118,y,w,14,1,58)}</div>`;
+  }).join('');
+
+  // spine + ingest node
+  const sp = eo(seg(t,6.5,7.1));
+  const spine = sp>0 ? `
+    <div style="position:absolute;left:756px;top:412px;height:330px;width:2px;
+       background:linear-gradient(180deg,transparent,var(--green) 22%,var(--blue) 78%,transparent);
+       opacity:${px(sp*.8)}"></div>
+    <div style="position:absolute;left:430px;top:432px;right:756px;height:2px;
+       background:linear-gradient(90deg,rgba(61,220,132,0),rgba(61,220,132,.55));
+       opacity:${px(sp*.7)}"></div>
+    <div style="position:absolute;left:757px;top:577px;width:22px;height:22px;margin:-11px 0 0 -11px;
+       border-radius:50%;background:var(--green);box-shadow:0 0 30px var(--green);opacity:${px(sp)}"></div>
+    <div style="position:absolute;left:812px;top:562px;opacity:${px(sp)}">
+      <div style="font:600 18px/1 var(--mono);letter-spacing:.26em;color:var(--green)">INGEST</div>
+      <div style="font:400 15px/1.5 var(--mono);letter-spacing:.06em;color:var(--dimmer);margin-top:8px">
+        detect · parse · validate</div></div>` : '';
+
+  const cardP = eio(seg(t,7.0,7.6));
+  const card = ocsfCard(t, 1010, 400, cardP, 'cisco_asa', {t0:7.05});
+
+  return wm + rows + spine + card;
+}
+
+/* reusable OCSF card — real normalized fields from the real parser */
+function ocsfCard(t, x, y, P, vendor, opts){
+  opts = opts||{};
+  if (P<=0.002) return '';
+  const h = H[vendor];
+  const finding = vendor==='suricata';
+  const rows = [
+    ['class_uid',    h.class_uid,    'num', 1],
+    ['class_name',   h.class_name,   'str', 0],
+    ['type_uid',     h.type_uid,     'num', 1],
+    ['type_name',    h.type_name,    'str', 0],
+    ['severity',     h.severity,     h.severity==='Medium'?'warn':'str', 0],
+  ];
+  if (finding) rows.push(['finding_info', h.finding_info, 'str', 0],
+                         ['confidence',   h.confidence,   'str', 0]);
+  rows.push(['src_endpoint', `${h.src_ip}:${h.src_port}`, 'ip', 0],
+            ['dst_endpoint', `${h.dst_ip}:${h.dst_port}`, 'ip', 0],
+            ['protocol_name', h.protocol_name, 'str', 0]);
+
+  return `<div class="layer" style="opacity:${px(P)}">
+    <div style="position:absolute;left:${x}px;top:${y}px">
+      <div class="ocsf" style="width:700px">
+        <div style="display:flex;align-items:center;gap:13px;margin-bottom:18px;padding-bottom:14px;
+             border-bottom:1px solid #1b2432">
+          <span style="font:600 16px/1 var(--mono);letter-spacing:.2em;color:${finding?'var(--violet)':'var(--blue)'}">OCSF-SLIM v1.8</span>
+          <span style="flex:1"></span>
+          <span class="chip" style="color:${VC[vendor]};font-size:15px">
+            <span class="dot" style="background:${VC[vendor]}"></span>${VN[vendor]}</span>
+        </div>
+        <div style="font:400 22px/1.66 var(--mono)">
+          ${rows.map((r,i)=>{
+            const o = eo(seg(t, opts.t0 + i*0.10, opts.t0 + 0.26 + i*0.10));
+            if (o<=0) return '';
+            const col = r[2]==='num'?'#f0a868':r[2]==='ip'?'var(--green)':r[2]==='warn'?'var(--amber)':'#cfe0f2';
+            return `<div class="frow" style="opacity:${px(o)};transform:translateY(${px((1-o)*8)}px)">
+              <span style="color:#5d8fd6">"${r[0]}"</span><span style="color:var(--dimmer)">: </span>
+              <span style="color:${col}">"${r[1]}"</span></div>`;
+          }).join('')}
+        </div></div></div></div>`;
+}
+
+/* ---------- S4  one schema, two classes ---------- */
+function s4(t){
+  // The "same fields / same enums" line lives in the head block, not under the
+  // cards: card B is 10 rows and reaches y≈786, so a label at 772 collided with
+  // it. Here it also settles at 9.25 and holds until the 12.2 cut — enough to read.
+  const hp = eo(seg(t,8.75,9.25));
+  const sp2 = eo(seg(t,9.15,9.6));
+  const head = `<div class="layer" style="opacity:${px(hp)}">
+    <div style="position:absolute;left:118px;top:152px">
+      <div class="kicker" style="margin-bottom:15px">Normalization</div>
+      <div class="h2">Two event classes. <span style="color:var(--blue)">One schema.</span></div>
+      <div style="font:400 27px/1.4 var(--sans);color:var(--dim);margin-top:16px;opacity:${px(sp2)}">
+        Same fields. <span style="color:var(--violet)">Same enums.</span></div></div></div>`;
+
+  const a = ocsfCard(t, 150, 352, eio(seg(t,8.95,9.45)), 'cisco_asa', {t0:9.0});
+  const bp = eio(seg(t,10.15,10.75));
+  const b = ocsfCard(t, 990, 352, bp, 'suricata', {t0:10.25});
+
+  const brP = eo(seg(t,9.95,10.45));
+  const br = brP>0 ? `<div class="layer" style="opacity:${px(brP*.85)}">
+    <div style="position:absolute;left:866px;top:492px;display:flex;align-items:center;gap:12px">
+      <div style="width:104px;height:2px;background:linear-gradient(90deg,var(--blue),var(--violet))"></div>
+      <div style="font:700 24px/1 var(--mono);color:var(--dimmer)">→</div></div></div>` : '';
+
+  return head + a + br + b;
+}
+
+/* ---------- S5  losslessness (the punch) ---------- */
+function s5(t){
+  const h = H.cisco_asa;
+  const hp = eo(seg(t,12.35,12.85));
+  const head = `<div class="layer" style="opacity:${px(hp)}">
+    <div style="position:absolute;left:118px;top:152px">
+      <div class="kicker" style="margin-bottom:15px;color:var(--green)">Losslessness</div>
+      <div class="h2">Nothing lost. <span style="color:var(--green)">Provably.</span></div></div></div>`;
+
+  const rp = eo(seg(t,12.7,13.3));
+  const rawBlk = rp>0 ? `<div class="layer" style="opacity:${px(rp)};transform:translateY(${px((1-rp)*12)}px)">
+    <div style="position:absolute;left:118px;top:336px;width:1684px">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px">
+        <span style="font:600 18px/1 var(--mono);color:var(--amber);letter-spacing:.14em">"raw_data"</span>
+        <span style="font:400 16px/1 var(--mono);color:var(--dimmer)">${h.raw_data_size} bytes · original</span>
+        <span style="flex:1;height:1px;background:#1b2432"></span></div>
+      <div class="rawcard" style="--c:var(--amber);padding:19px 23px">
+        <div class="raw" style="font-size:19px">${hlCisco(h.raw)}</div></div></div></div>` : '';
+
+  // hash types in, then verifies
+  const hStart = 13.45, hEnd = 14.45;
+  const hp2 = seg(t,hStart,hEnd);
+  const verified = t >= hEnd + 0.25;
+  const shown = h.raw_data_hash.slice(0, Math.floor(clamp01(hp2)*64));
+  const hashBlk = hp2>0 ? `<div class="layer" style="opacity:${px(eo(seg(t,13.4,13.75)))}">
+    <div style="position:absolute;left:118px;top:576px;width:1684px">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px">
+        <span style="font:600 18px/1 var(--mono);color:var(--green);letter-spacing:.14em">"raw_data_hash"</span>
+        <span style="font:400 16px/1 var(--sans);color:var(--dimmer)">sha256(raw_data)</span>
+        <span style="flex:1;height:1px;background:#1b2432"></span>
+        <span style="font:600 16px/1 var(--mono);letter-spacing:.14em;color:var(--green)">✓ VERIFIED</span></div>
+      <div style="font:400 20px/1.5 var(--mono);color:var(--green);word-break:break-all;
+           background:#080d11;border:1px solid #1d2836;border-radius:9px;padding:17px 21px">
+        ${shown}<span style="opacity:${hp2<1?.85:.22}">▍</span></div></div></div>` : '';
+
+  // 3-word punch, settled at 15.1 and held to the 16.4 cut
+  const pp = eo(seg(t,14.75,15.1));
+  const punch = pp>0 ? `<div class="layer" style="opacity:${px(pp)};transform:translateY(${px((1-pp)*14)}px)">
+    <div style="position:absolute;left:118px;top:772px">
+      <div style="font:700 62px/1.1 var(--sans);letter-spacing:-.022em;color:#fff">
+        Recompute it <span style="color:var(--green)">yourself.</span></div>
+      <div style="font:400 25px/1.5 var(--sans);color:var(--dim);margin-top:16px">
+        Same bytes in, same bytes out — every event.</div></div></div>` : '';
+
+  return head + rawBlk + hashBlk + punch;
+}
+
+/* ---------- S6  numbers + outro ---------- */
+function s6(t){
+  // NB: a fade-OUT must invert the easing — seg() clamps to 1, so eio(seg(t,a,b))
+  // rises to 1 and stays there; 1 - eio(...) is what actually falls to 0.
+  // Everything belonging to the stats beat (kicker + tiles) shares this envelope
+  // so the outro never has to ghost over live content.
+  const tilesOut = 1 - eio(seg(t,19.15,19.6));
+  const kp = eo(seg(t,16.55,16.95));
+  const kicker = `<div class="layer" style="opacity:${px(kp*tilesOut)}">
+    <div style="position:absolute;left:118px;top:150px"><div class="kicker">What we measured</div></div></div>`;
+
+  const stats = [
+    ['4','vendor formats','cisco · fortigate · suricata · linux','var(--blue)'],
+    ['88/90','curated lines routed','host-internal audit lines rejected by design','var(--ink)'],
+    ['537,900','events / sec ingest','12 workers · measured, not estimated','var(--green)'],
+    ['1','static binary','air-gapped · no CGO · no cloud calls','var(--amber)'],
+  ];
+  const tiles = stats.map(([n,l,sub,col],i)=>{
+    const q = eo(seg(t,16.75+i*0.20,17.3+i*0.20));
+    if (q<=0) return '';
+    return `<div style="width:392px;opacity:${px(q*tilesOut)};transform:translateY(${px((1-q)*22)}px)">
+      <div style="border-top:2px solid ${col};padding-top:19px">
+        <div style="font:700 60px/1 var(--mono);color:${col};letter-spacing:-.028em">${n}</div>
+        <div style="font:500 24px/1.3 var(--sans);color:var(--ink);margin-top:14px">${l}</div>
+        <div style="font:400 17px/1.45 var(--sans);color:var(--dimmer);margin-top:9px">${sub}</div>
+      </div></div>`;
+  }).join('');
+
+  const statsBlk = `<div style="opacity:${px(eio(seg(t,16.5,16.9)))}">${kicker}
+    <div style="position:absolute;left:118px;top:262px;display:flex;gap:32px">${tiles}</div></div>`;
+
+  const op = eo(seg(t,19.55,20.05));
+  const cp = eo(seg(t,19.85,20.2));
+  const outro = op>0 ? `<div class="layer" style="opacity:${px(op)}">
+    <div style="position:absolute;left:0;right:0;top:392px;text-align:center">
+      <div class="wordmark" style="font-size:112px">ULPF</div>
+      <div style="font:500 28px/1.4 var(--sans);color:var(--dim);margin-top:20px">
+        Universal Log Pre-processing Framework</div>
+      <div style="display:flex;gap:14px;justify-content:center;margin-top:32px;opacity:${px(cp)}">
+        ${['OCSF-Slim v1.8','lossless · raw + sha256','air-gapped','Go'].map(t2=>
+          `<span style="font:500 17px/1 var(--mono);letter-spacing:.14em;color:var(--dim);
+             border:1px solid #1e2836;border-radius:999px;padding:12px 20px;text-transform:uppercase">${t2}</span>`).join('')}
+      </div>
+      <div style="font:400 23px/1.5 var(--sans);color:var(--dimmer);margin-top:36px;opacity:${px(cp)}">
+        One schema. Nothing lost.</div>
+    </div></div>` : '';
+
+  return statsBlk + outro;
+}
+
+/* ---------- timeline ----------
+   A scene is emitted only while t is inside its window. The outgoing scene
+   fades fast (OUT_FADE) while the incoming fades in slower (IN_FADE), so each
+   boundary is a staggered dissolve rather than a double exposure.           */
+const DUR = 21.0;
+const SCENES = [
+  [0.0,  3.2, s1],
+  [3.2,  2.6, s2],
+  [5.8,  2.8, s3],
+  [8.6,  3.6, s4],
+  [12.2, 4.2, s5],
+  [16.4, 4.6, s6],
+];
+const OUT_FADE = 0.28, IN_FADE = 0.50;
+
+function render(t){
+  let html = '';
+  for (const [a, dur, fn] of SCENES) {
+    const b = a + dur;
+    if (t < a || t > b + OUT_FADE) continue;
+    const env = clamp01((t - a) / IN_FADE) * clamp01((b - t) / OUT_FADE);
+    if (env <= 0.002) continue;
+    html += '<div style="position:absolute;inset:0;opacity:' + px(env) + '">' + fn(t) + '</div>';
+  }
+  document.getElementById('layers').innerHTML = html;
+}
+window.__renderAt = render;
+window.__DUR = DUR;
+render(0);
+</script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+Four firewall formats — Cisco ASA syslog, FortiGate key=value, Suricata EVE JSON, Linux netfilter — collapse into one OCSF-Slim v1.8 schema, two event classes (4001 NetworkActivity, 2004 DetectionFinding).
+
+The original line stays byte-for-byte with its sha256 beside it, so losslessness is something you recompute, not something we promise.
+
+Go, one static binary, runs air-gapped. Built for SIH 2026 · #25165.

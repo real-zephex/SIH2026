@@ -1,0 +1,432 @@
+### SOURCE=samples/cisco_asa.log VENDOR=cisco_asa
+{
+  "class_uid": 4001,
+  "class_name": "Network Activity",
+  "category_uid": 4,
+  "category_name": "Network Activity",
+  "activity_id": 1,
+  "activity_name": "Allow",
+  "type_uid": 400101,
+  "type_name": "Network Activity: Allow",
+  "severity_id": 1,
+  "severity": "Informational",
+  "status_id": 1,
+  "status": "Success",
+  "message": "Built dynamic TCP translation from inside:172.31.98.44/1772 to outside:192.168.98.44/8256",
+  "time": 1539174896000,
+  "metadata": {
+    "product": {
+      "name": "ASA",
+      "vendor": "Cisco",
+      "version": "9.x"
+    },
+    "version": "1.8.0",
+    "uid": "826477af-aa85-4be0-9e94-e114181aeece",
+    "correlation_uid": "826477af-aa85-4be0-9e94-e114181aeece"
+  },
+  "raw_data": "Oct 10 2018 12:34:56 localhost CiscoASA[999]: %ASA-6-305011: Built dynamic TCP translation from inside:172.31.98.44/1772 to outside:192.168.98.44/8256",
+  "raw_data_hash": "af70f26add326554d92e0200ce677f23c577d459e9a78689ec9cd68828da1403",
+  "raw_data_size": 150,
+  "unmapped": {
+    "asa.message_id": "305011",
+    "asa.severity": "6"
+  },
+  "src_endpoint": {
+    "ip": "172.31.98.44",
+    "port": 1772
+  },
+  "dst_endpoint": {
+    "ip": "192.168.98.44",
+    "port": 8256
+  },
+  "protocol_name": "tcp",
+  "protocol_num": 6,
+  "direction": "unknown",
+  "action": "Built",
+  "traffic": {}
+}
+### SOURCE=samples/cisco_asa.log VENDOR=cisco_asa
+{
+  "class_uid": 4001,
+  "class_name": "Network Activity",
+  "category_uid": 4,
+  "category_name": "Network Activity",
+  "activity_id": 1,
+  "activity_name": "Allow",
+  "type_uid": 400101,
+  "type_name": "Network Activity: Allow",
+  "severity_id": 1,
+  "severity": "Informational",
+  "status_id": 1,
+  "status": "Success",
+  "message": "Built outbound TCP connection 76118 for outside:207.68.178.45/80 (207.68.178.45/80) to inside:192.168.20.31/3530 (99.129.50.157/5967)",
+  "time": 1196270448000,
+  "metadata": {
+    "product": {
+      "name": "ASA",
+      "vendor": "Cisco",
+      "version": "9.x"
+    },
+    "version": "1.8.0",
+    "uid": "209bf169-29d0-47f5-a5ad-e2dcb2f0e87b",
+    "correlation_uid": "209bf169-29d0-47f5-a5ad-e2dcb2f0e87b"
+  },
+  "raw_data": "\u003c134\u003eNov 28 2007 17:20:48: %ASA-6-302013: Built outbound TCP connection 76118 for outside:207.68.178.45/80 (207.68.178.45/80) to inside:192.168.20.31/3530 (99.129.50.157/5967)",
+  "raw_data_hash": "b74f581be7df74e9d262cc94fea32eba82f89f99a1af31bc49e5ccb33910fa75",
+  "raw_data_size": 175,
+  "unmapped": {
+    "asa.connection_id": "76118",
+    "asa.message_id": "302013",
+    "asa.severity": "6"
+  },
+  "src_endpoint": {
+    "ip": "207.68.178.45",
+    "port": 80
+  },
+  "dst_endpoint": {
+    "ip": "192.168.20.31",
+    "port": 3530
+  },
+  "protocol_name": "tcp",
+  "protocol_num": 6,
+  "direction": "outbound",
+  "action": "Built",
+  "traffic": {}
+}
+### SOURCE=samples/fortigate.log VENDOR=fortigate
+{
+  "class_uid": 4001,
+  "class_name": "Network Activity",
+  "category_uid": 4,
+  "category_name": "Network Activity",
+  "activity_id": 1,
+  "activity_name": "Allow",
+  "type_uid": 400101,
+  "type_name": "Network Activity: Allow",
+  "severity_id": 1,
+  "severity": "Informational",
+  "message": "Web.Client: HTTPS.BROWSER,",
+  "time": 1557968615000,
+  "metadata": {
+    "product": {
+      "name": "FortiGate",
+      "vendor": "Fortinet"
+    },
+    "version": "1.8.0",
+    "uid": "bed36b22-a91a-440a-8cc6-e3854d4eebe4"
+  },
+  "raw_data": "\u003c190\u003edate=2019-05-15 time=18:03:36 logid=\"1059028704\" type=\"utm\" subtype=\"app-ctrl\" eventtype=\"app-ctrl-all\" level=\"information\" vd=\"root\" eventtime=1557968615 appid=40568 srcip=10.1.100.22 dstip=67.43.156.14 srcport=50798 dstport=443 srcintf=\"port10\" srcintfrole=\"lan\" dstintf=\"port9\" dstintfrole=\"wan\" proto=6 service=\"HTTPS\" direction=\"outgoing\" policyid=1 sessionid=4414 applist=\"block-social.media\" appcat=\"Web.Client\" app=\"HTTPS.BROWSER\" action=\"pass\" hostname=\"www.dailymotion.com\" incidentserialno=1962906680 url=\"/\" msg=\"Web.Client: HTTPS.BROWSER,\" apprisk=\"medium\" scertcname=\"*.dailymotion.com\" scertissuer=\"DigiCert SHA2 High Assurance Server CA\"",
+  "raw_data_hash": "1fb0e526895e32cd0719b0d094c7c79f4ccab2a5d505ec208a8a5e4be4957a3c",
+  "raw_data_size": 658,
+  "unmapped": {
+    "app": "HTTPS.BROWSER",
+    "appcat": "Web.Client",
+    "appid": "40568",
+    "applist": "block-social.media",
+    "apprisk": "medium",
+    "dstintf": "port9",
+    "dstintfrole": "wan",
+    "hostname": "www.dailymotion.com",
+    "incidentserialno": "1962906680",
+    "policyid": "1",
+    "scertcname": "*.dailymotion.com",
+    "scertissuer": "DigiCert SHA2 High Assurance Server CA",
+    "sessionid": "4414",
+    "srcintf": "port10",
+    "srcintfrole": "lan",
+    "url": "/"
+  },
+  "src_endpoint": {
+    "ip": "10.1.100.22",
+    "port": 50798
+  },
+  "dst_endpoint": {
+    "ip": "67.43.156.14",
+    "port": 443
+  },
+  "protocol_name": "tcp",
+  "protocol_num": 6,
+  "direction": "outgoing",
+  "action": "pass",
+  "traffic": {}
+}
+### SOURCE=samples/fortigate.log VENDOR=fortigate
+{
+  "class_uid": 4001,
+  "class_name": "Network Activity",
+  "category_uid": 4,
+  "category_name": "Network Activity",
+  "activity_id": 1,
+  "activity_name": "Allow",
+  "type_uid": 400101,
+  "type_name": "Network Activity: Allow",
+  "severity_id": 1,
+  "severity": "Informational",
+  "time": 1557968617000,
+  "metadata": {
+    "product": {
+      "name": "FortiGate",
+      "vendor": "Fortinet"
+    },
+    "version": "1.8.0",
+    "uid": "5d0ae4dc-2865-401f-93df-e54de724e511"
+  },
+  "raw_data": "date=2019-05-15 time=18:03:37 logid=\"0000000013\" type=\"traffic\" subtype=\"forward\" level=\"notice\" vd=\"root\" eventtime=1557968617 srcip=10.1.100.22 dstip=8.8.8.8 srcport=50799 dstport=53 srcintf=\"port10\" dstintf=\"port9\" proto=17 action=\"accept\" policyid=1 sessionid=4415 bytes=156 packets=2 app=\"DNS\"",
+  "raw_data_hash": "143adca21d73680a31e5fe20b84a0b96089869d20323d11559abae447c080586",
+  "raw_data_size": 298,
+  "unmapped": {
+    "app": "DNS",
+    "dstintf": "port9",
+    "policyid": "1",
+    "sessionid": "4415",
+    "srcintf": "port10"
+  },
+  "src_endpoint": {
+    "ip": "10.1.100.22",
+    "port": 50799
+  },
+  "dst_endpoint": {
+    "ip": "8.8.8.8",
+    "port": 53
+  },
+  "protocol_name": "udp",
+  "protocol_num": 17,
+  "action": "accept",
+  "traffic": {
+    "packets": 2,
+    "bytes": 156
+  }
+}
+### SOURCE=samples/suricata_eve.json VENDOR=suricata
+{
+  "class_uid": 2004,
+  "class_name": "Detection Finding",
+  "category_uid": 2,
+  "category_name": "Findings",
+  "activity_id": 1,
+  "activity_name": "Create",
+  "type_uid": 200401,
+  "type_name": "Detection Finding: Create",
+  "severity_id": 3,
+  "severity": "Medium",
+  "status_id": 99,
+  "status": "Other",
+  "message": "ET SCAN Potential SSH Scan",
+  "time": 1521923839037,
+  "metadata": {
+    "product": {
+      "name": "Suricata",
+      "vendor": "OISF",
+      "version": "6.x"
+    },
+    "version": "1.8.0",
+    "uid": "fb425e95-a7af-4c34-baf0-e6358182e082",
+    "correlation_uid": "fb425e95-a7af-4c34-baf0-e6358182e082"
+  },
+  "raw_data": "{\"timestamp\": \"2018-03-24T14:37:19.037299-0600\", \"flow_id\": 928532049924531, \"pcap_cnt\": 169577, \"event_type\": \"alert\", \"src_ip\": \"0.0.0.0\", \"src_port\": 26078, \"dest_ip\": \"10.47.8.150\", \"dest_port\": 22, \"proto\": \"TCP\", \"alert\": {\"action\": \"allowed\", \"gid\": 1, \"signature_id\": 2001219, \"rev\": 20, \"signature\": \"ET SCAN Potential SSH Scan\", \"category\": \"Attempted Information Leak\", \"severity\": 2}, \"flow\": {\"pkts_toserver\": 1, \"pkts_toclient\": 0, \"bytes_toserver\": 74, \"bytes_toclient\": 0, \"start\": \"2018-03-24T14:37:19.037299-0600\"}}",
+  "raw_data_hash": "0823467d4d268bf9dcd47fae885ac6540bd19e3bc56d4688fcefca2e82b7c2d5",
+  "raw_data_size": 533,
+  "unmapped": {
+    "suricata.category": "Attempted Information Leak",
+    "suricata.event_type": "alert",
+    "suricata.flow_id": "928532049924531",
+    "suricata.gid": "1",
+    "suricata.pcap_cnt": "169577",
+    "suricata.rev": "20",
+    "suricata.signature_id": "2001219"
+  },
+  "src_endpoint": {
+    "ip": "0.0.0.0",
+    "port": 26078
+  },
+  "dst_endpoint": {
+    "ip": "10.47.8.150",
+    "port": 22
+  },
+  "protocol_name": "tcp",
+  "protocol_num": 6,
+  "direction": "unknown",
+  "action": "allowed",
+  "traffic": {
+    "packets": 1,
+    "bytes": 74
+  },
+  "finding_info": "ET SCAN Potential SSH Scan",
+  "confidence": "Attempted Information Leak"
+}
+### SOURCE=samples/suricata_eve.json VENDOR=suricata
+{
+  "class_uid": 2004,
+  "class_name": "Detection Finding",
+  "category_uid": 2,
+  "category_name": "Findings",
+  "activity_id": 1,
+  "activity_name": "Create",
+  "type_uid": 200401,
+  "type_name": "Detection Finding: Create",
+  "severity_id": 2,
+  "severity": "Low",
+  "status_id": 99,
+  "status": "Other",
+  "message": "ET SCAN Behavioral Unusual Port 445 traffic Potential Scan or Infection",
+  "time": 1521835181964,
+  "metadata": {
+    "product": {
+      "name": "Suricata",
+      "vendor": "OISF",
+      "version": "6.x"
+    },
+    "version": "1.8.0",
+    "uid": "9979d84f-26fa-4849-8109-e7fe1858e22f",
+    "correlation_uid": "9979d84f-26fa-4849-8109-e7fe1858e22f"
+  },
+  "raw_data": "{\"timestamp\": \"2018-03-23T13:59:41.964828-0600\", \"flow_id\": 430097432426712, \"pcap_cnt\": 263922, \"event_type\": \"alert\", \"src_ip\": \"10.128.0.210\", \"src_port\": 43407, \"dest_ip\": \"10.47.3.218\", \"dest_port\": 445, \"proto\": \"TCP\", \"alert\": {\"action\": \"allowed\", \"gid\": 1, \"signature_id\": 2001569, \"rev\": 15, \"signature\": \"ET SCAN Behavioral Unusual Port 445 traffic Potential Scan or Infection\", \"category\": \"Misc activity\", \"severity\": 3}, \"flow\": {\"pkts_toserver\": 2, \"pkts_toclient\": 0, \"bytes_toserver\": 148, \"bytes_toclient\": 0, \"start\": \"2018-03-23T13:59:41.964824-0600\"}}",
+  "raw_data_hash": "7252d6a421807d9330061597ffcdf672f3385aeb582b84d849c8d69c231ce4ec",
+  "raw_data_size": 572,
+  "unmapped": {
+    "suricata.category": "Misc activity",
+    "suricata.event_type": "alert",
+    "suricata.flow_id": "430097432426712",
+    "suricata.gid": "1",
+    "suricata.pcap_cnt": "263922",
+    "suricata.rev": "15",
+    "suricata.signature_id": "2001569"
+  },
+  "src_endpoint": {
+    "ip": "10.128.0.210",
+    "port": 43407
+  },
+  "dst_endpoint": {
+    "ip": "10.47.3.218",
+    "port": 445
+  },
+  "protocol_name": "tcp",
+  "protocol_num": 6,
+  "direction": "unknown",
+  "action": "allowed",
+  "traffic": {
+    "packets": 2,
+    "bytes": 148
+  },
+  "finding_info": "ET SCAN Behavioral Unusual Port 445 traffic Potential Scan or Infection",
+  "confidence": "Misc activity"
+}
+### SOURCE=samples/linux_iptables.log VENDOR=linux
+{
+  "class_uid": 4001,
+  "class_name": "Network Activity",
+  "category_uid": 4,
+  "category_name": "Network Activity",
+  "activity_id": 0,
+  "activity_name": "Unknown",
+  "type_uid": 400100,
+  "type_name": "Network Activity: Unknown",
+  "severity_id": 1,
+  "severity": "Informational",
+  "message": "Linux network/security event",
+  "time": 1790763499746,
+  "metadata": {
+    "product": {
+      "name": "Linux",
+      "vendor": "Linux"
+    },
+    "version": "1.8.0",
+    "uid": "0"
+  },
+  "raw_data": "Hostname kernel: [wan-lan-default-D]IN=eth0 OUT= MAC=90:10:20:76:8d:20:90:10:65:29:b6:2a:08:00 SRC=67.43.156.15 DST=10.4.0.5 LEN=52 TOS=0x00 PREC=0x00 TTL=63 ID=0 DF PROTO=TCP SPT=38842 DPT=443 WINDOW=2853 RES=0x00 ACK URGP=0",
+  "raw_data_hash": "42a8b53ffb4a149cf49cfa153424ae6c00f59768dbc38dcc627f5b0cfe5c686f",
+  "raw_data_size": 225,
+  "observables": [
+    {
+      "name": "source_ip",
+      "type": "ip",
+      "value": "67.43.156.15"
+    },
+    {
+      "name": "destination_ip",
+      "type": "ip",
+      "value": "10.4.0.5"
+    }
+  ],
+  "unmapped": {
+    "hostname": "Hostname",
+    "id": "0",
+    "length": "52",
+    "mac": "90:10:20:76:8d:20:90:10:65:29:b6:2a:08:00",
+    "tos": "0x00",
+    "ttl": "63"
+  },
+  "src_endpoint": {
+    "ip": "67.43.156.15",
+    "port": 38842
+  },
+  "dst_endpoint": {
+    "ip": "10.4.0.5",
+    "port": 443
+  },
+  "protocol_name": "TCP",
+  "protocol_num": 6,
+  "action": "UNKNOWN",
+  "traffic": {}
+}
+### SOURCE=samples/linux_iptables.log VENDOR=linux
+{
+  "class_uid": 4001,
+  "class_name": "Network Activity",
+  "category_uid": 4,
+  "category_name": "Network Activity",
+  "activity_id": 2,
+  "activity_name": "Deny",
+  "type_uid": 400102,
+  "type_name": "Network Activity: Deny",
+  "severity_id": 2,
+  "severity": "Low",
+  "message": "Linux UFW blocked network traffic",
+  "time": 1790763499747,
+  "metadata": {
+    "product": {
+      "name": "Linux",
+      "vendor": "Linux"
+    },
+    "version": "1.8.0",
+    "uid": "31241"
+  },
+  "raw_data": "myhost kernel: [UFW BLOCK] IN=eth0 OUT= MAC=90:10:20:76:8d:20:90:10:65:29:b6:2a:08:00 SRC=45.148.10.88 DST=10.0.0.5 LEN=60 TOS=0x00 PREC=0x00 TTL=52 ID=31241 DF PROTO=TCP SPT=4444 DPT=22 WINDOW=64240 RES=0x00 SYN URGP=0",
+  "raw_data_hash": "934f97fb3d378e48703298ce1b3172c1fb6e996a45d3cf7483110174aec2284f",
+  "raw_data_size": 219,
+  "observables": [
+    {
+      "name": "source_ip",
+      "type": "ip",
+      "value": "45.148.10.88"
+    },
+    {
+      "name": "destination_ip",
+      "type": "ip",
+      "value": "10.0.0.5"
+    }
+  ],
+  "unmapped": {
+    "hostname": "myhost",
+    "id": "31241",
+    "interface_in": "eth0",
+    "length": "60",
+    "mac": "90:10:20:76:8d:20:90:10:65:29:b6:2a:08:00",
+    "tos": "0x00",
+    "ttl": "52"
+  },
+  "src_endpoint": {
+    "ip": "45.148.10.88",
+    "port": 4444
+  },
+  "dst_endpoint": {
+    "ip": "10.0.0.5",
+    "port": 22
+  },
+  "protocol_name": "TCP",
+  "protocol_num": 6,
+  "direction": "Inbound",
+  "action": "BLOCK",
+  "traffic": {}
+}
+### THROUGHPUT lines=90 parsed_ok=88 elapsed_ns=1058102 ns_per_line=11757 lines_per_sec=85058

@@ -76,7 +76,7 @@ func ParseCiscoASA(line string) (schema.Event, error) {
 	}
 	// TODO(you): add per-ID extras, e.g. bytes/duration for 302014/302016,
 	// hit-cnt for 106100, SPI for 402119. Keep Unmapped <= 20 keys.
-	if err := e.Validate(); err != nil {
+	if err := e.ValidateNoRehash(); err != nil {
 		return schema.Event{}, fmt.Errorf("cisco_asa %s: %w", msgID, err)
 	}
 	return e, nil
